@@ -105,7 +105,7 @@ public class Architecture {
         }
 
         else {
-            if (word > 2048)
+            if (word >= 1024 || word<0)
                 throw new ArchitectureExceptions("Out of memory bounds");
             else
                 mainMem[word+1024] = value;
@@ -121,7 +121,7 @@ public class Architecture {
         }
 
         else {
-            if (word > 2048)
+            if (word >= 1024 || word<0)
                 throw new ArchitectureExceptions("Out of memory bounds");
             else
                 return mainMem[word+1024];
@@ -245,7 +245,7 @@ public class Architecture {
 
     public void execJ(int address) throws ArchitectureExceptions {  //J
 
-        int newPC  = (readRegister("PC") & 0b01111000000000000000000000000000) >> 27;
+        int newPC  = (readRegister("PC") & 0b11110000000000000000000000000000) >> 28;
         String newPCStr = Integer.toBinaryString(newPC);
         String addressStr = Integer.toBinaryString(address);
         int value = Integer.parseInt((newPCStr + addressStr),2);
