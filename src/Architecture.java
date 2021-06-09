@@ -2,11 +2,13 @@ public class Architecture {
 
     private static int [] mainMem = new int [2048]; // Data_location = Location + 1024
     private static int [] registers  = new int[33];
+    private static int clk;
 
     public Architecture(){
 
          registers[0] = 0;  //Zero register
          registers[32] = 0; //PC register
+         clk = 1;
 
     }
 
@@ -186,12 +188,12 @@ public class Architecture {
         String newPCStr = Integer.toBinaryString(newPC);
         String addressStr = Integer.toBinaryString(address);
         int value = Integer.parseInt((newPCStr + addressStr),2);
+
         writeRegister("PC",value);
 
     }
 
     public static void main(String[] args) {
-
     }
 
 }
