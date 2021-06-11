@@ -149,6 +149,7 @@ public class Architecture {
                     String reg = instruction[j].substring(1);
                     int regNo = Integer.parseInt(reg);
                     binValue += Integer.toBinaryString(regNo);
+                    //handle shamt
                     if(binValue.length() < 5){
                         String temp = "";
                         int zeroes = 5 - binValue.length();
