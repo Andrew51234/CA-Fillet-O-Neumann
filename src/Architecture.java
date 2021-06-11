@@ -1,3 +1,8 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Vector;
+
 public class Architecture {
     private static int [] mainMem = new int [2048]; // Data_location = Location + 1024
     private static int [] registers  = new int[33];
@@ -47,6 +52,118 @@ public class Architecture {
         hasWB = false;
         //add all the instructions to their appropriate locations in the memory and adjust the numOfIns value
         numOfIns = 1;
+    }
+
+    public static int convSigned(String binary){
+        String newBin = "";
+        if(binary.charAt(0) == '0'){
+            return Integer.parseInt(binary,2);
+        }
+        else{
+            newBin += "-0";
+            for(int i=1; i<binary.length(); i++){
+                if(binary.charAt(i) == '0')
+                    newBin += "1";
+                else
+                    newBin += "0";
+            }
+            return (Integer.valueOf(newBin,2))-1;
+        }
+    }
+
+    public static void parse(String location, int offset) throws IOException {
+        FileReader fr = new FileReader(location);
+        BufferedReader br = new BufferedReader(fr);
+        String current;
+        String binValue = "";
+        String type= "";
+        Vector<Integer> instructions = new Vector<>();
+        while((current = br.readLine())!= null){
+            String[] instruction = current.split(" ");
+            for(int j = 0; j<instruction.length; j++){
+                if(instruction[j].equals("ADD")){
+                    binValue += "0000";
+                    type = "R";
+                    continue;
+                }
+                if(instruction[j].equals("SUB")){
+                    binValue += "0001";
+                    type = "R";
+                    continue;
+                }
+                if(instruction[j].equals("MULI")){
+                    binValue += "0010";
+                    type = "I";
+                    continue;
+                }
+                if(instruction[j].equals("ADDI")){
+                    binValue += "0011";
+                    type = "I";
+                    continue;
+                }
+                if(instruction[j].equals("BNE")){
+                    binValue += "0100";
+                    type = "I";
+                    continue;
+                }
+                if(instruction[j].equals("ANDI")){
+                    binValue += "0101";
+                    type = "I";
+                    continue;
+                }
+                if(instruction[j].equals("ORI")){
+                    binValue += "0110";
+                    type = "I";
+                    continue;
+
+                }
+                if(instruction[j].equals("J")){
+                    binValue += "0111";
+                    type = "J";
+                    continue;
+                }
+                if(instruction[j].equals("SLL")){
+                    binValue += "1000";
+                    type = "R";
+                    continue;
+                }
+                if(instruction[j].equals("SRL")){
+                    binValue += "1001";
+                    type = "R";
+                    continue;
+                }
+                if(instruction[j].equals("LW")){
+                    binValue += "1010";
+                    type = "I";
+                    continue;
+                }
+                if(instruction[j].equals("SW")){
+                    binValue += "1011";
+                    type = "I";
+                    continue;
+                }
+
+                if(type.equals("R")){
+                    String reg = instruction[j].substring(1);
+                    int regNo = Integer.parseInt(reg);
+                    binValue += Integer.toBinaryString(regNo);
+                    continue;
+                }
+                if(type.equals("I")){
+                    continue;
+
+                }
+                if(type.equals("J")){
+                    continue;
+
+                }
+            }
+            instructions.add(convSigned(binValue));
+        }
+        for (int instruction : instructions){
+            mainMem[offset] = instruction;
+            offset++;
+        }
     }
 
     public static void writeRegister(String register, int value) throws ArchitectureExceptions {
@@ -369,5 +486,7 @@ public class Architecture {
                 hasIF = false;
             }
         }
+    }
+    public static void main(String[]args){
     }
 }
