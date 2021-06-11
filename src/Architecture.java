@@ -75,10 +75,12 @@ public class Architecture {
         FileReader fr = new FileReader(location);
         BufferedReader br = new BufferedReader(fr);
         String current;
-        String binValue = "";
-        String type= "";
+        String type;
+        String binValue;
         Vector<Integer> instructions = new Vector<>();
         while((current = br.readLine())!= null){
+            binValue = "";
+            type = "";
             String[] instruction = current.split(" ");
             for(int j = 0; j<instruction.length; j++){
                 if(instruction[j].equals("ADD")){
@@ -147,6 +149,14 @@ public class Architecture {
                     String reg = instruction[j].substring(1);
                     int regNo = Integer.parseInt(reg);
                     binValue += Integer.toBinaryString(regNo);
+                    if(binValue.length() < 5){
+                        String temp = "";
+                        int zeroes = 5 - binValue.length();
+                        for(int i=0; i<zeroes; i++){ // to be tested (<= ? )
+                            temp += '0';
+                        }
+                        temp += binValue;
+                    }
                     continue;
                 }
                 if(type.equals("I")){
