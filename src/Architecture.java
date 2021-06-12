@@ -18,6 +18,8 @@ public class Architecture {
     private static boolean hasFakeMEM;
     private static boolean hasWB;
     private static boolean hasFakeWB;
+    private static boolean decodeSecondClk;
+    private static boolean executeSecondClk;
     private static int nextDecode;
     private static int nextOpcode;
     private static int nextR1;
@@ -282,10 +284,14 @@ public class Architecture {
         writeRegister("PC", pc+1);
         nextDecode = instruction;
         hasID = true;
+        decodeSecondClk = false;
     }
 
     public static void decode(int instruction) throws ArchitectureExceptions {
-
+        if(!decodeSecondClk){
+            decodeSecondClk = true;
+            return;
+        }
         int opcode = 0;      // bits31:28
         int r1 = 0;          // bits27:23
         int r2 = 0;          // bits22:18
@@ -319,6 +325,7 @@ public class Architecture {
             hasEXR = true;
             hasEXI = false;
             hasEXJ = false;
+            executeSecondClk = false;
 
         }
 
@@ -330,16 +337,23 @@ public class Architecture {
             hasEXR = false;
             hasEXI = true;
             hasEXJ = false;
+            executeSecondClk = false;
         }
         else if (opcode == 7){
             nextAddress = address;
             hasEXR = false;
             hasEXI = false;
             hasEXJ = true;
+            executeSecondClk = false;
         }
     }
 
     public static void execR(int opcode, int r1, int r2, int r3, int shamt) throws ArchitectureExceptions {
+
+        if(!executeSecondClk){
+            executeSecondClk = true;
+            return;
+        }
 
         String r1Pos = "R"+r1;
         int r2Value = readRegister("R"+r2);
@@ -371,6 +385,11 @@ public class Architecture {
     }
 
     public static void execI(int opcode, int r1, int r2, int immediate) throws ArchitectureExceptions {
+
+        if(!executeSecondClk){
+            executeSecondClk = true;
+            return;
+        }
 
         String r1Pos = "R"+r1;
         int r1Value = readRegister("R"+r1);
@@ -424,6 +443,11 @@ public class Architecture {
     }
 
     public static void execJ(int address) throws ArchitectureExceptions {  //J
+
+        if(!executeSecondClk){
+            executeSecondClk = true;
+            return;
+        }
 
         int newPC  = (readRegister("PC") & 0b11110000000000000000000000000000) >> 28;
         String newPCStr = Integer.toBinaryString(newPC);
