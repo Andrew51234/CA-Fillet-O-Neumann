@@ -464,10 +464,24 @@ public class Architecture {
     public static void dispatcher() throws ArchitectureExceptions {
         int totalClks = 7 + ((numOfIns-1)*2);
         while(clk<=totalClks){
+
+            if(clk==1){
+                hasIF=true;
+                hasID=false;
+                hasEXR=false;
+                hasEXI=false;
+                hasEXJ=false;
+                hasMEMR=false;
+                hasMEMW=false;
+                hasFakeMEM=false;
+                hasWB=false;
+                hasFakeWB=false;
+            }
+
             if(!hasIF && !hasID && !hasEXR && !hasEXI && !hasEXJ && !hasMEMR && !hasMEMW && !hasFakeMEM && !hasWB){
                 return;
             }
-            if(clk>=(totalClks-5)){
+            if(clk>=(totalClks-5)){ //might not work in the case of jump
                 hasIF = false;
                 if(clk>=(totalClks-3)){
                     hasID = false;
@@ -490,12 +504,21 @@ public class Architecture {
                 writeRegister(wRegReg, wRegValue);
             }
             if(hasFakeMEM){
+                if(hasIF){ //collision avoidance
+                    hasIF=false;
+                }
                 fakeMemAccess(fakeMemReg, fakeMemValue);
             }
             if(hasMEMW){
+                if(hasIF){ //collision avoidance
+                    hasIF=false;
+                }
                 realMemWrite(realWord, realValue, false);
             }
             if(hasMEMR){
+                if(hasIF){ //collision avoidance
+                    hasIF=false;
+                }
                 realMemRead(completeRunReg, realWord, false);
             }
             if(hasEXR){
