@@ -146,29 +146,77 @@ public class Architecture {
                     type = "I";
                     continue;
                 }
-
-                if(type.equals("R")){
-                    String reg = instruction[j].substring(1);
-                    int regNo = Integer.parseInt(reg);
-                    binValue += Integer.toBinaryString(regNo);
-                    //handle shamt
-                    if(binValue.length() < 5){
-                        String temp = "";
-                        int zeroes = 5 - binValue.length();
-                        for(int i=0; i<zeroes; i++){ // to be tested (<= ? )
-                            temp += '0';
+                if(type.equals("R")) {
+                    if (instruction[j].charAt(0) == 'R') {
+                        String reg = instruction[j].substring(1);
+                        int regNo = Integer.parseInt(reg);
+                        String tempBinValue = Integer.toBinaryString(regNo);
+                        if (tempBinValue.length() < 5) {
+                            String temp = "";
+                            int zeroes = 5 - tempBinValue.length();
+                            for (int i = 0; i < zeroes; i++) {
+                                temp += '0';
+                            }
+                            temp += tempBinValue;
+                            binValue += temp;
                         }
-                        temp += binValue;
+                    } else { //shamt
+                        int shamt = Integer.parseInt(instruction[j]);
+                        String tempShamt = Integer.toBinaryString(shamt);
+                        if (tempShamt.length() < 13) {
+                            String temp = "";
+                            int zeroes = 13 - tempShamt.length();
+                            for (int i = 0; i < zeroes; i++) {
+                                temp += '0';
+                            }
+                            temp += tempShamt;
+                            binValue += temp;
+                        }
                     }
-                    continue;
                 }
                 if(type.equals("I")){
-                    continue;
+                    if(instruction[j].charAt(0) == 'R') {
+                        String reg = instruction[j].substring(1);
+                        int regNo = Integer.parseInt(reg);
+                        String tempBinValue = Integer.toBinaryString(regNo);
+                        if (tempBinValue.length() < 5) {
+                            String temp = "";
+                            int zeroes = 5 - tempBinValue.length();
+                            for (int i = 0; i < zeroes; i++) {
+                                temp += '0';
+                            }
+                            temp += tempBinValue;
+                            binValue += temp;
+                        }
+                    }
+                    else { //immediate
+                        int imm = Integer.parseInt(instruction[j]);
+                        String tempImm = Integer.toBinaryString(imm);
+                        if (tempImm.length() < 18) {
+                            String temp = "";
+                            int zeroes = 18 - tempImm.length();
+                            for (int i = 0; i < zeroes; i++) {
+                                temp += '0';
+                            }
+                            temp += tempImm;
+                            binValue += temp;
+                        }
+                    }
 
                 }
-                if(type.equals("J")){
-                    continue;
 
+                if(type.equals("J")){
+                    int address = Integer.parseInt(instruction[j]);
+                    String tempAddress = Integer.toBinaryString(address);
+                    if (tempAddress.length() < 28) {
+                        String temp = "";
+                        int zeroes = 28 - tempAddress.length();
+                        for (int i = 0; i < zeroes; i++) {
+                            temp += '0';
+                        }
+                        temp += tempAddress;
+                        binValue += temp;
+                    }
                 }
             }
             instructions.add(convSigned(binValue));
