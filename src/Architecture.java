@@ -151,7 +151,7 @@ public class Architecture {
                         String reg = instruction[j].substring(1);
                         int regNo = Integer.parseInt(reg);
                         String tempBinValue = Integer.toBinaryString(regNo);
-                        if (tempBinValue.length() < 5) {
+                        if (tempBinValue.length() <= 5) {
                             String temp = "";
                             int zeroes = 5 - tempBinValue.length();
                             for (int i = 0; i < zeroes; i++) {
@@ -179,7 +179,7 @@ public class Architecture {
                         String reg = instruction[j].substring(1);
                         int regNo = Integer.parseInt(reg);
                         String tempBinValue = Integer.toBinaryString(regNo);
-                        if (tempBinValue.length() < 5) {
+                        if (tempBinValue.length() <= 5) {
                             String temp = "";
                             int zeroes = 5 - tempBinValue.length();
                             for (int i = 0; i < zeroes; i++) {
@@ -208,7 +208,7 @@ public class Architecture {
                 if(type.equals("J")){
                     int address = Integer.parseInt(instruction[j]);
                     String tempAddress = Integer.toBinaryString(address);
-                    if (tempAddress.length() < 28) {
+                    if (tempAddress.length() <= 28) {
                         String temp = "";
                         int zeroes = 28 - tempAddress.length();
                         for (int i = 0; i < zeroes; i++) {
@@ -220,6 +220,7 @@ public class Architecture {
                 }
             }
             instructions.add(convSigned(binValue));
+            System.out.println(binValue);
         }
         for (int instruction : instructions){
             mainMem[offset] = instruction;
@@ -593,6 +594,7 @@ public class Architecture {
             }
         }
     }
-    public static void main(String[]args){
+    public static void main(String[]args) throws IOException {
+        Architecture.parse("test.txt", 0);
     }
 }
