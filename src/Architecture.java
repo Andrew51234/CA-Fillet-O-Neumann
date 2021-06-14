@@ -163,7 +163,7 @@ public class Architecture {
                     } else { //shamt
                         int shamt = Integer.parseInt(instruction[j]);
                         String tempShamt = Integer.toBinaryString(shamt);
-                        if (tempShamt.length() < 13) {
+                        if (tempShamt.length() <= 13) {
                             String temp = "";
                             int zeroes = 13 - tempShamt.length();
                             for (int i = 0; i < zeroes; i++) {
@@ -192,7 +192,7 @@ public class Architecture {
                     else { //immediate
                         int imm = Integer.parseInt(instruction[j]);
                         String tempImm = Integer.toBinaryString(imm);
-                        if (tempImm.length() < 18) {
+                        if (tempImm.length() <= 18) {
                             String temp = "";
                             int zeroes = 18 - tempImm.length();
                             for (int i = 0; i < zeroes; i++) {
