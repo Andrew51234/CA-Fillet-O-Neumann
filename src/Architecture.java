@@ -20,6 +20,7 @@ public class Architecture {
     private static boolean hasFakeWB;
     private static boolean decodeSecondClk;
     private static boolean executeSecondClk;
+    private static boolean jumped;
     private static int nextDecode;
     private static int nextOpcode;
     private static int nextR1;
@@ -52,6 +53,7 @@ public class Architecture {
         hasMEMW = false;
         hasFakeMEM = false;
         hasWB = false;
+        jumped = false;
         //add all the instructions to their appropriate locations in the memory and adjust the numOfIns value
         numOfIns = 1;
     }
@@ -461,6 +463,7 @@ public class Architecture {
                 fakeMemReg = "PC";
                 fakeMemValue = readRegister("PC") + 1 + immediate;
                 hasFakeMEM = true;
+                jumped = true;
             }
         }
 
@@ -506,6 +509,7 @@ public class Architecture {
         fakeMemReg = "PC";
         fakeMemValue = value;
         hasFakeMEM = true;
+        jumped = true;
 
         System.out.println("jumped to "+readRegister("PC"));
     }
@@ -584,6 +588,14 @@ public class Architecture {
             }
             if(hasIF){
                 fetch();
+            }
+            if(jumped){
+                jumped=false;
+                hasIF = false;
+                hasID = false;
+                hasEXR = false;
+                hasEXI = false;
+                hasEXJ = false;
             }
             clk++;
             if(clk%2==1){
