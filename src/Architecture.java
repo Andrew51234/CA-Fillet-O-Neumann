@@ -55,7 +55,7 @@ public class Architecture {
         hasWB = false;
         jumped = false;
         //add all the instructions to their appropriate locations in the memory and adjust the numOfIns value
-        numOfIns = 1;
+        numOfIns = 3;
     }
 
     public static int convSigned(String binary){
@@ -162,7 +162,11 @@ public class Architecture {
                             temp += tempBinValue;
                             binValue += temp;
                         }
+
                     } else { //shamt
+                        if(binValue.substring(0,4).equals("1000") || binValue.substring(0,4).equals("1001")){
+                            binValue+="00000";
+                        }
                         int shamt = Integer.parseInt(instruction[j]);
                         String tempShamt = Integer.toBinaryString(shamt);
                         if (tempShamt.length() <= 13) {
@@ -241,6 +245,8 @@ public class Architecture {
         }
         else if(register.charAt(0)=='R' && Integer.parseInt(register.substring(1))>0 && Integer.parseInt(register.substring(1))<32){
             registers[Integer.parseInt(register.substring(1))] = value;
+            System.out.println("write back");
+
         }
     }
 
@@ -270,8 +276,10 @@ public class Architecture {
                 System.out.println("Out of memory bounds");
                 return;
             }
-            else
-                mainMem[word+1024] = value;
+            else {
+                System.out.println("wrote in memory :)");
+                mainMem[word + 1024] = value;
+            }
         }
     }
 
@@ -279,6 +287,7 @@ public class Architecture {
         if (instruction){
             if (word<=1023 && word>=0)
                 return mainMem[word];
+
             else {
                 System.out.println("Invalid instruction location (Accessed data memory)");
                 return readRegister("PC");
@@ -291,14 +300,15 @@ public class Architecture {
                 return readRegister("PC");
             }
             else
+                System.out.println("data accessed");
                 return mainMem[word+1024];
         }
     }
 
     public static void fakeMemAccess(String register, int value) throws ArchitectureExceptions {
-        writeRegister(register, value);
         wRegReg = register;
         wRegValue = value;
+        System.out.println("fake mem");
         hasWB = true;
     }
 
@@ -341,6 +351,7 @@ public class Architecture {
     public static void decode(int instruction) throws ArchitectureExceptions {
         if(!decodeSecondClk){
             decodeSecondClk = true;
+            System.out.println("Decoding: "+instruction+ " first clk");
             return;
         }
         int opcode = 0;      // bits31:28
@@ -365,8 +376,9 @@ public class Architecture {
         immediate = (instruction & 0b00000000000000111111111111111111);
         address   = (instruction & 0b00001111111111111111111111111111);
 
-        System.out.println("Decoded: "+instruction);
-        if (opcode == 0 || opcode == 1 || opcode == 8 || opcode == 9){
+        System.out.println("Decoded: "+instruction+ " second clk");
+        System.out.println("Opcode:" +opcode);
+        if (opcode == 0 || opcode == 1 || opcode == -8  || opcode == -7 ){
             //execR(opcode, r1, r2, r3, shamt);
             nextOpcode = opcode;
             nextR1= r1;
@@ -377,10 +389,9 @@ public class Architecture {
             hasEXI = false;
             hasEXJ = false;
             executeSecondClk = false;
-
         }
 
-        else if (opcode == 2 || opcode == 3 || opcode == 4 || opcode == 5 || opcode == 6 || opcode == 10 || opcode == 11){
+        else if (opcode == 2 || opcode == 3 || opcode == 4 || opcode == 5 || opcode == 6 || opcode == -6 || opcode == -5){
             nextOpcode = opcode;
             nextR1= r1;
             nextR2= r2;
@@ -403,17 +414,21 @@ public class Architecture {
 
         if(!executeSecondClk){
             executeSecondClk = true;
+            System.out.println("Executing: "+opcode+ " first clk");
+
             return;
         }
 
         String r1Pos = "R"+r1;
         int r2Value = readRegister("R"+r2);
         int r3Value = readRegister("R"+r3);
-
+        System.out.println("Executed: "+opcode+ " second clk");
         if (opcode == 0){  //ADD
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value + r3Value;
             hasFakeMEM = true;
+
+
         }
 
         if (opcode == 1){  //SUB
@@ -422,13 +437,14 @@ public class Architecture {
             hasFakeMEM = true;
         }
 
-        if (opcode == 8){  //SLL
+        if ( opcode == -8){  //SLL
+            System.out.println("shamt: "+ shamt);
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value << shamt;
             hasFakeMEM = true;
         }
 
-        if (opcode == 9){  //SRL
+        if (opcode == -7){  //SRL
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value >> shamt;
             hasFakeMEM = true;
@@ -439,17 +455,20 @@ public class Architecture {
 
         if(!executeSecondClk){
             executeSecondClk = true;
+            System.out.println("Executing: "+opcode+ " first clk");
             return;
         }
 
         String r1Pos = "R"+r1;
         int r1Value = readRegister("R"+r1);
         int r2Value = readRegister("R"+r2);
-
+        System.out.println("Executed: "+opcode+ " second clk");
         if (opcode == 2){  //MULI
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value * immediate;
             hasFakeMEM = true;
+
+
         }
 
         if (opcode == 3){  //ADDI
@@ -461,7 +480,7 @@ public class Architecture {
         if (opcode == 4){  //BNE
             if(r1Value != r2Value){
                 fakeMemReg = "PC";
-                fakeMemValue = readRegister("PC") + 1 + immediate;
+                fakeMemValue = readRegister("PC") + immediate;
                 hasFakeMEM = true;
                 jumped = true;
             }
@@ -479,14 +498,13 @@ public class Architecture {
             hasFakeMEM = true;
         }
 
-        if (opcode == 10){  //LW
-            writeRegister(r1Pos, readMem(r2Value + immediate, false));
+        if (opcode == -6){  //LW
             completeRunReg = r1Pos;
             realWord = r2Value + immediate;
             hasMEMR = true;
         }
 
-        if (opcode == 11){  //SW
+        if (opcode == -5){  //SW
             realWord = r2Value + immediate;
             realValue = r1Value;
             hasMEMW = true;
@@ -498,6 +516,7 @@ public class Architecture {
 
         if(!executeSecondClk){
             executeSecondClk = true;
+            System.out.println("Executing: jump first clk");
             return;
         }
 
@@ -511,13 +530,14 @@ public class Architecture {
         hasFakeMEM = true;
         jumped = true;
 
-        System.out.println("jumped to "+readRegister("PC"));
+        System.out.println("Executed: jump second clk");
     }
 
     public static void dispatcher() throws ArchitectureExceptions {
         int totalClks = 7 + ((numOfIns-1)*2);
         while(clk<=totalClks){
 
+            System.out.println("clock cycle: "+clk);
             if(clk==1){
                 hasIF=true;
                 hasID=false;
@@ -534,7 +554,7 @@ public class Architecture {
             if(!hasIF && !hasID && !hasEXR && !hasEXI && !hasEXJ && !hasMEMR && !hasMEMW && !hasFakeMEM && !hasWB){
                 return;
             }
-            if(clk>=(totalClks-5)){ //might not work in the case of jump
+            if(clk>=(totalClks-5)){
                 hasIF = false;
                 if(clk>=(totalClks-3)){
                     hasID = false;
@@ -606,7 +626,22 @@ public class Architecture {
             }
         }
     }
-    public static void main(String[]args) throws IOException {
-        Architecture.parse("test.txt", 0);
+    public static void main(String[]args) throws IOException, ArchitectureExceptions {
+        Architecture arch = new Architecture();
+        arch.parse("test.txt", 0);
+
+        arch.writeRegister("R2", 3);
+        arch.writeRegister("R3", 7);
+        arch.writeRegister("R5", 8);
+        arch.writeRegister("R6", 2);
+
+        arch.writeMem(0, 8937472, true);
+        arch.writeMem(1, 278183936, true);
+        arch.writeMem(2, 579338244, true);
+
+        arch.dispatcher();
+
+        System.out.println("R1: "+ arch.readRegister("R1"));
+        System.out.println("R5: "+ arch.readRegister("R5"));
     }
 }
