@@ -572,27 +572,40 @@ public class Architecture {
             }
             if(hasFakeWB){
                 fakeWB();
+                hasFakeWB = false;
+                hasWB = false;
             }
             if(hasWB){
                 writeRegister(wRegReg, wRegValue);
+                hasFakeWB = false;
+                hasWB = false;
             }
             if(hasFakeMEM){
                 if(hasIF){ //collision avoidance
                     hasIF=false;
                 }
                 fakeMemAccess(fakeMemReg, fakeMemValue);
+                hasFakeMEM = false;
+                hasMEMR = false;
+                hasMEMW = false;
             }
             if(hasMEMW){
                 if(hasIF){ //collision avoidance
                     hasIF=false;
                 }
                 realMemWrite(realWord, realValue, false);
+                hasFakeMEM = false;
+                hasMEMR = false;
+                hasMEMW = false;
             }
             if(hasMEMR){
                 if(hasIF){ //collision avoidance
                     hasIF=false;
                 }
                 realMemRead(completeRunReg, realWord, false);
+                hasFakeMEM = false;
+                hasMEMR = false;
+                hasMEMW = false;
             }
             if(hasEXR){
                 execR(nextOpcode, nextR1, nextR2, nextR3, nextShamt);
@@ -617,6 +630,7 @@ public class Architecture {
                 hasEXI = false;
                 hasEXJ = false;
             }
+            System.out.println("");
             clk++;
             if(clk%2==1){
                 hasIF = true;
