@@ -21,6 +21,8 @@ public class Architecture {
     private static boolean decodeSecondClk;
     private static boolean executeSecondClk;
     private static boolean jumped;
+    private static int curPCToDec;
+    private static int curPCToExec;
     private static int nextDecode;
     private static int nextOpcode;
     private static int nextR1;
@@ -55,7 +57,10 @@ public class Architecture {
         hasWB = false;
         jumped = false;
         //add all the instructions to their appropriate locations in the memory and adjust the numOfIns value
-        numOfIns = 3;
+        numOfIns = 0;
+        for(int i=0; i<1023; i++){
+            mainMem[i] = 2000000000;
+        }
     }
 
     public static int convSigned(String binary){
@@ -225,12 +230,16 @@ public class Architecture {
                     }
                 }
             }
+            if(binValue.length()<32){ //shift amount not given
+                binValue += "0000000000000";
+            }
             instructions.add(convSigned(binValue));
             System.out.println(binValue);
         }
         for (int instruction : instructions){
             mainMem[offset] = instruction;
             offset++;
+            numOfIns++;
         }
     }
 
@@ -329,21 +338,25 @@ public class Architecture {
     }
 
     public static void fetch() throws ArchitectureExceptions {
-        int oldClk = clk;
         int pc = readRegister("PC");
         int instruction = 0;
 
         if(pc<1023) {
             instruction = readMem(pc, true);
+            if(instruction==2000000000){
+                hasID = false;
+                decodeSecondClk = false;
+                return;
+            }
         }
         else {
             writeRegister("PC",0);
         }
-
         System.out.println("fetched: "+instruction);
 
         writeRegister("PC", pc+1);
         nextDecode = instruction;
+        curPCToDec = pc;
         hasID = true;
         decodeSecondClk = false;
     }
@@ -377,9 +390,10 @@ public class Architecture {
         address   = (instruction & 0b00001111111111111111111111111111);
 
         System.out.println("Decoded: "+instruction+ " second clk");
-        System.out.println("Opcode:" +opcode);
+
+        curPCToExec = curPCToDec;
         if (opcode == 0 || opcode == 1 || opcode == -8  || opcode == -7 ){
-            //execR(opcode, r1, r2, r3, shamt);
+
             nextOpcode = opcode;
             nextR1= r1;
             nextR2= r2;
@@ -408,6 +422,7 @@ public class Architecture {
             hasEXJ = true;
             executeSecondClk = false;
         }
+        hasID = false;
     }
 
     public static void execR(int opcode, int r1, int r2, int r3, int shamt) throws ArchitectureExceptions {
@@ -422,7 +437,9 @@ public class Architecture {
         String r1Pos = "R"+r1;
         int r2Value = readRegister("R"+r2);
         int r3Value = readRegister("R"+r3);
+
         System.out.println("Executed: "+opcode+ " second clk");
+
         if (opcode == 0){  //ADD
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value + r3Value;
@@ -449,6 +466,10 @@ public class Architecture {
             fakeMemValue = r2Value >> shamt;
             hasFakeMEM = true;
         }
+
+        hasEXR=false;
+        hasEXI=false;
+        hasEXJ=false;
     }
 
     public static void execI(int opcode, int r1, int r2, int immediate) throws ArchitectureExceptions {
@@ -462,7 +483,9 @@ public class Architecture {
         String r1Pos = "R"+r1;
         int r1Value = readRegister("R"+r1);
         int r2Value = readRegister("R"+r2);
+
         System.out.println("Executed: "+opcode+ " second clk");
+
         if (opcode == 2){  //MULI
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value * immediate;
@@ -480,7 +503,7 @@ public class Architecture {
         if (opcode == 4){  //BNE
             if(r1Value != r2Value){
                 fakeMemReg = "PC";
-                fakeMemValue = readRegister("PC") + immediate;
+                fakeMemValue = curPCToExec + 1 + immediate;
                 hasFakeMEM = true;
                 jumped = true;
             }
@@ -510,6 +533,11 @@ public class Architecture {
             hasMEMW = true;
         }
 
+
+        hasEXR=false;
+        hasEXI=false;
+        hasEXJ=false;
+
     }
 
     public static void execJ(int address) throws ArchitectureExceptions {  //J
@@ -520,7 +548,7 @@ public class Architecture {
             return;
         }
 
-        int newPC  = (readRegister("PC") & 0b11110000000000000000000000000000) >> 28;
+        int newPC  = (curPCToExec & 0b11110000000000000000000000000000) >> 28;
         String newPCStr = Integer.toBinaryString(newPC);
         String addressStr = Integer.toBinaryString(address);
         int value = Integer.parseInt((newPCStr + addressStr),2);
@@ -531,13 +559,15 @@ public class Architecture {
         jumped = true;
 
         System.out.println("Executed: jump second clk");
+
+        hasEXR=false;
+        hasEXI=false;
+        hasEXJ=false;
     }
 
     public static void dispatcher() throws ArchitectureExceptions {
         int totalClks = 7 + ((numOfIns-1)*2);
         while(clk<=totalClks){
-
-            System.out.println("clock cycle: "+clk);
             if(clk==1){
                 hasIF=true;
                 hasID=false;
@@ -554,6 +584,9 @@ public class Architecture {
             if(!hasIF && !hasID && !hasEXR && !hasEXI && !hasEXJ && !hasMEMR && !hasMEMW && !hasFakeMEM && !hasWB){
                 return;
             }
+
+            System.out.println("clock cycle: "+clk);
+
             if(clk>=(totalClks-5)){
                 hasIF = false;
                 if(clk>=(totalClks-3)){
@@ -619,6 +652,8 @@ public class Architecture {
             if(hasID){
                 decode(nextDecode);
             }
+
+            System.out.println("PC: " + registers[32]);
             if(hasIF){
                 fetch();
             }
@@ -644,18 +679,25 @@ public class Architecture {
         Architecture arch = new Architecture();
         arch.parse("test.txt", 0);
 
-        arch.writeRegister("R2", 3);
+        arch.writeRegister("R1", 77);
+        arch.writeRegister("R12", 7);
         arch.writeRegister("R3", 7);
-        arch.writeRegister("R5", 8);
-        arch.writeRegister("R6", 2);
-
-        arch.writeMem(0, 8937472, true);
-        arch.writeMem(1, 278183936, true);
-        arch.writeMem(2, 579338244, true);
+        arch.writeRegister("R9", 7);
+        arch.writeRegister("R6", 7);
+        arch.writeRegister("R15", 7);
+        arch.writeRegister("R18", 7);
+        arch.writeRegister("R21", 7);
+        arch.writeRegister("R24", 7);
 
         arch.dispatcher();
 
-        System.out.println("R1: "+ arch.readRegister("R1"));
+        System.out.println("R2: "+ arch.readRegister("R2"));
         System.out.println("R5: "+ arch.readRegister("R5"));
+        System.out.println("R8: "+ arch.readRegister("R8"));
+        System.out.println("R11: "+ arch.readRegister("R11"));
+        System.out.println("R14: "+ arch.readRegister("R14"));
+        System.out.println("R17: "+ arch.readRegister("R17"));
+        System.out.println("R20: "+ arch.readRegister("R20"));
+        System.out.println("R23: "+ arch.readRegister("R23"));
     }
 }
