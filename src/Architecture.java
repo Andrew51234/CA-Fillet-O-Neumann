@@ -253,7 +253,6 @@ public class Architecture {
 
     public static void writeRegister(String register, int value) {
         if(register.equals("R0")) {
-            System.out.println("The zero register cannot be overwritten");
             return;
         }
 
@@ -300,7 +299,7 @@ public class Architecture {
         }
     }
 
-    public static int readMem(int word, boolean instruction) throws ArchitectureExceptions {
+    public static int readMem(int word, boolean instruction){
         if (instruction){
             if (word<=1023 && word>=0)
                 return mainMem[word];
@@ -329,13 +328,13 @@ public class Architecture {
         hasWB = true;
     }
 
-    public static void realMemWrite(int word, int value, boolean instruction) throws ArchitectureExceptions {
+    public static void realMemWrite(int word, int value, boolean instruction) {
         writeMem(word, value, instruction);
         hasFakeWB = true;
 
     }
 
-    public static void realMemRead(String reg, int word, boolean instruction) throws ArchitectureExceptions {
+    public static void realMemRead(String reg, int word, boolean instruction) {
         wRegValue = readMem(word, instruction);
         wRegReg = reg;
         hasWB = true;
@@ -345,7 +344,7 @@ public class Architecture {
         System.out.println("Write Back Stage");
     }
 
-    public static void fetch() throws ArchitectureExceptions {
+    public static void fetch() {
         int pc = readRegister("PC");
         int instruction = 0;
 
@@ -432,7 +431,7 @@ public class Architecture {
         hasID = false;
     }
 
-    public static void execR(int opcode, int r1, int r2, int r3, int shamt) throws ArchitectureExceptions {
+    public static void execR(int opcode, int r1, int r2, int r3, int shamt) {
 
         if(!executeSecondClk){
             executeSecondClk = true;
@@ -478,7 +477,7 @@ public class Architecture {
         hasEXJ=false;
     }
 
-    public static void execI(int opcode, int r1, int r2, int immediate) throws ArchitectureExceptions {
+    public static void execI(int opcode, int r1, int r2, int immediate) {
 
         if(!executeSecondClk){
             executeSecondClk = true;
@@ -571,7 +570,7 @@ public class Architecture {
         hasEXJ=false;
     }
 
-    public static void dispatcher(String fileName) throws ArchitectureExceptions, IOException {
+    public static void dispatcher(String fileName) throws IOException {
 
         parse(fileName, 0);
 
@@ -669,10 +668,14 @@ public class Architecture {
         }
     }
 
-    public static void main(String[]args) throws IOException, ArchitectureExceptions {
+    public static void main(String[]args) {
         Architecture arch = new Architecture();
 
-        arch.dispatcher("test.txt");
+        try {
+            arch.dispatcher("test.txt");
+        } catch (IOException e) {
+            System.out.println("Couldn't read file");
+        }
 
     }
 }
