@@ -203,15 +203,24 @@ public class Architecture {
                     else { //immediate
                         int imm = Integer.parseInt(instruction[j]);
                         String tempImm = Integer.toBinaryString(imm);
+                        boolean negative = false;
+                        if(imm<0){
+                            tempImm = tempImm.substring(14);
+                            negative = true;
+                        }
                         if (tempImm.length() <= 18) {
                             String temp = "";
                             int zeroes = 18 - tempImm.length();
                             for (int i = 0; i < zeroes; i++) {
-                                temp += '0';
+                                if(negative){
+                                    temp += '1';
+                                }
+                                else temp += '0';
                             }
                             temp += tempImm;
                             binValue += temp;
                         }
+
                     }
 
                 }
@@ -409,6 +418,9 @@ public class Architecture {
             nextOpcode = opcode;
             nextR1= r1;
             nextR2= r2;
+            if(Integer.toBinaryString(instruction).charAt(14)=='1'){
+                immediate = convSigned(Integer.toBinaryString(immediate));
+            }
             nextImmediate= immediate;
             hasEXR = false;
             hasEXI = true;
@@ -566,8 +578,8 @@ public class Architecture {
     }
 
     public static void dispatcher() throws ArchitectureExceptions {
-        int totalClks = 7 + ((numOfIns-1)*2);
-        while(clk<=totalClks){
+        //int totalClks = 7 + ((numOfIns-1)*2);
+        while(true){
             if(clk==1){
                 hasIF=true;
                 hasID=false;
@@ -587,22 +599,22 @@ public class Architecture {
 
             System.out.println("clock cycle: "+clk);
 
-            if(clk>=(totalClks-5)){
-                hasIF = false;
-                if(clk>=(totalClks-3)){
-                    hasID = false;
-                    if(clk>=(totalClks-1)){
-                        hasEXR = false;
-                        hasEXI = false;
-                        hasEXJ = false;
-                        if(clk==totalClks){
-                            hasMEMR = false;
-                            hasMEMW = false;
-                            hasFakeMEM = false;
-                        }
-                    }
-                }
-            }
+//            if(clk>=(totalClks-5)){
+//                hasIF = false;
+//                if(clk>=(totalClks-3)){
+//                    hasID = false;
+//                    if(clk>=(totalClks-1)){
+//                        hasEXR = false;
+//                        hasEXI = false;
+//                        hasEXJ = false;
+//                        if(clk==totalClks){
+//                            hasMEMR = false;
+//                            hasMEMW = false;
+//                            hasFakeMEM = false;
+//                        }
+//                    }
+//                }
+//            }
             if(hasFakeWB){
                 fakeWB();
                 hasFakeWB = false;
@@ -679,25 +691,15 @@ public class Architecture {
         Architecture arch = new Architecture();
         arch.parse("test.txt", 0);
 
-        arch.writeRegister("R1", 77);
-        arch.writeRegister("R12", 7);
-        arch.writeRegister("R3", 7);
-        arch.writeRegister("R9", 7);
-        arch.writeRegister("R6", 7);
-        arch.writeRegister("R15", 7);
-        arch.writeRegister("R18", 7);
-        arch.writeRegister("R21", 7);
-        arch.writeRegister("R24", 7);
+        arch.writeRegister("R5", 5);
+        arch.writeRegister("R1", 5);
+        arch.writeRegister("R9", 70);
+        arch.writeRegister("R19", 1);
 
         arch.dispatcher();
 
         System.out.println("R2: "+ arch.readRegister("R2"));
-        System.out.println("R5: "+ arch.readRegister("R5"));
+        System.out.println("R10: "+ arch.readRegister("R10"));
         System.out.println("R8: "+ arch.readRegister("R8"));
-        System.out.println("R11: "+ arch.readRegister("R11"));
-        System.out.println("R14: "+ arch.readRegister("R14"));
-        System.out.println("R17: "+ arch.readRegister("R17"));
-        System.out.println("R20: "+ arch.readRegister("R20"));
-        System.out.println("R23: "+ arch.readRegister("R23"));
     }
 }
