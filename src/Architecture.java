@@ -56,7 +56,6 @@ public class Architecture {
         hasFakeMEM = false;
         hasWB = false;
         jumped = false;
-        //add all the instructions to their appropriate locations in the memory and adjust the numOfIns value
         numOfIns = 0;
         for(int i=0; i<1023; i++){
             mainMem[i] = 2000000000;
@@ -252,7 +251,7 @@ public class Architecture {
         }
     }
 
-    public static void writeRegister(String register, int value) throws ArchitectureExceptions {
+    public static void writeRegister(String register, int value) {
         if(register.equals("R0")) {
             System.out.println("The zero register cannot be overwritten");
             return;
@@ -263,12 +262,12 @@ public class Architecture {
         }
         else if(register.charAt(0)=='R' && Integer.parseInt(register.substring(1))>0 && Integer.parseInt(register.substring(1))<32){
             registers[Integer.parseInt(register.substring(1))] = value;
-            System.out.println("write back");
+            System.out.println("Write Back");
 
         }
     }
 
-    public static int readRegister(String register) throws ArchitectureExceptions {
+    public static int readRegister(String register){
         if(register.equals("PC")){
             return registers[32];
         }
@@ -278,7 +277,7 @@ public class Architecture {
         return 0;
     }
 
-    public static void writeMem(int word, int value, boolean instruction) throws ArchitectureExceptions {
+    public static void writeMem(int word, int value, boolean instruction){
 
         if (instruction){
             if (word<=1023 && word>=0)
@@ -295,7 +294,7 @@ public class Architecture {
                 return;
             }
             else {
-                System.out.println("wrote in memory :)");
+                System.out.println("wrote in memory");
                 mainMem[word + 1024] = value;
             }
         }
@@ -318,15 +317,15 @@ public class Architecture {
                 return readRegister("PC");
             }
             else
-                System.out.println("data accessed");
+                System.out.println("read memory");
                 return mainMem[word+1024];
         }
     }
 
-    public static void fakeMemAccess(String register, int value) throws ArchitectureExceptions {
+    public static void fakeMemAccess(String register, int value){
         wRegReg = register;
         wRegValue = value;
-        System.out.println("fake mem");
+        System.out.println("Memory access");
         hasWB = true;
     }
 
@@ -343,7 +342,7 @@ public class Architecture {
     }
 
     public static  void fakeWB(){
-        return;
+        System.out.println("Write Back Stage");
     }
 
     public static void fetch() throws ArchitectureExceptions {
@@ -370,7 +369,7 @@ public class Architecture {
         decodeSecondClk = false;
     }
 
-    public static void decode(int instruction) throws ArchitectureExceptions {
+    public static void decode(int instruction){
         if(!decodeSecondClk){
             decodeSecondClk = true;
             System.out.println("Decoding: "+instruction+ " first clk");
@@ -383,10 +382,6 @@ public class Architecture {
         int shamt = 0;       // bits12:0
         int immediate = 0;   // bits17:0
         int address = 0;     // bits27:0
-
-        int valueR1 = 0;
-        int valueR2 = 0;
-        int valueR3 = 0;
 
         //bit-masking
 
@@ -467,7 +462,6 @@ public class Architecture {
         }
 
         if ( opcode == -8){  //SLL
-            System.out.println("shamt: "+ shamt);
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value << shamt;
             hasFakeMEM = true;
@@ -552,7 +546,7 @@ public class Architecture {
 
     }
 
-    public static void execJ(int address) throws ArchitectureExceptions {  //J
+    public static void execJ(int address){  //J
 
         if(!executeSecondClk){
             executeSecondClk = true;
@@ -577,8 +571,11 @@ public class Architecture {
         hasEXJ=false;
     }
 
-    public static void dispatcher() throws ArchitectureExceptions {
-        //int totalClks = 7 + ((numOfIns-1)*2);
+    public static void dispatcher(String fileName) throws ArchitectureExceptions, IOException {
+
+        parse(fileName, 0);
+
+        int totalClks = 7 + ((numOfIns-1)*2);
         while(true){
             if(clk==1){
                 hasIF=true;
@@ -599,22 +596,6 @@ public class Architecture {
 
             System.out.println("clock cycle: "+clk);
 
-//            if(clk>=(totalClks-5)){
-//                hasIF = false;
-//                if(clk>=(totalClks-3)){
-//                    hasID = false;
-//                    if(clk>=(totalClks-1)){
-//                        hasEXR = false;
-//                        hasEXI = false;
-//                        hasEXJ = false;
-//                        if(clk==totalClks){
-//                            hasMEMR = false;
-//                            hasMEMW = false;
-//                            hasFakeMEM = false;
-//                        }
-//                    }
-//                }
-//            }
             if(hasFakeWB){
                 fakeWB();
                 hasFakeWB = false;
@@ -687,19 +668,11 @@ public class Architecture {
             }
         }
     }
+
     public static void main(String[]args) throws IOException, ArchitectureExceptions {
         Architecture arch = new Architecture();
-        arch.parse("test.txt", 0);
 
-        arch.writeRegister("R5", 5);
-        arch.writeRegister("R1", 5);
-        arch.writeRegister("R9", 70);
-        arch.writeRegister("R19", 1);
+        arch.dispatcher("test.txt");
 
-        arch.dispatcher();
-
-        System.out.println("R2: "+ arch.readRegister("R2"));
-        System.out.println("R10: "+ arch.readRegister("R10"));
-        System.out.println("R8: "+ arch.readRegister("R8"));
     }
 }
