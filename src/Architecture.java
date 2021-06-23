@@ -261,7 +261,7 @@ public class Architecture {
         }
         else if(register.charAt(0)=='R' && Integer.parseInt(register.substring(1))>0 && Integer.parseInt(register.substring(1))<32){
             registers[Integer.parseInt(register.substring(1))] = value;
-            System.out.println("Write Back To "+register);
+            System.out.println("Write Back To "+register+" the value "+value);
 
         }
     }
@@ -293,7 +293,7 @@ public class Architecture {
                 return;
             }
             else {
-                System.out.println("Write In Memory["+word + 1024 +"]");
+                System.out.println("Write In Memory["+word + 1024 +"] the value "+value);
                 mainMem[word + 1024] = value;
             }
         }
@@ -457,22 +457,19 @@ public class Architecture {
 
         if(!executeSecondClk){
             executeSecondClk = true;
-            String binOpCode = Integer.toBinaryString(opcode);
-            if(opcode >=0){
-                if (binOpCode.length() <= 4 ) {
-                    String temp = "";
-                    int zeroes = 4 - binOpCode.length();
-                    for (int i = 0; i < zeroes; i++) {
-                        temp += '0';
-                    }
-                    temp += binOpCode;
-                    binOpCode = temp;
-                }
+
+            if(opcode == 0){
+                System.out.println("Executing First Clock Cycle Of ADD R" + r1 + " R" + r2 + " R" +r3 + " " +shamt);
             }
-            else if(opcode<0){
-                binOpCode = binOpCode.substring(28);
+            if(opcode == 1){
+                System.out.println("Executing First Clock Cycle Of SUB R" + r1 + " R" + r2 + " R" +r3 + " " +shamt);
             }
-            System.out.println("Executing First Clock Cycle Of Instruction: "+binOpCode);
+            if(opcode == -8){
+                System.out.println("Executing First Clock Cycle Of SLL R" + r1 + " R" + r2  + " " +shamt);
+            }
+            if(opcode == -7){
+                System.out.println("Executing First Clock Cycle Of SRL R" + r1 + " R" + r2  + " " +shamt);
+            }
 
             return;
         }
@@ -485,7 +482,7 @@ public class Architecture {
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value + r3Value;
             hasFakeMEM = true;
-            System.out.println("Executed Second Clock Cycle Of Instruction: ADD");
+            System.out.println("Executed Second Clock Cycle Of ADD R" + r1 + " R" + r2 + " R" +r3 + " " +shamt);
 
         }
 
@@ -493,21 +490,21 @@ public class Architecture {
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value - r3Value;
             hasFakeMEM = true;
-            System.out.println("Executed Second Clock Cycle Of Instruction: SUB");
+            System.out.println("Executed Second Clock Cycle Of SUB R" + r1 + " R" + r2 + " R" +r3 + " " +shamt);
         }
 
         if ( opcode == -8){  //SLL
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value << shamt;
             hasFakeMEM = true;
-            System.out.println("Executed Second Clock Cycle Of Instruction: SLL");
+            System.out.println("Executed Second Clock Cycle Of SLL R" + r1 + " R" + r2 + " " +shamt);
         }
 
         if (opcode == -7){  //SRL
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value >> shamt;
             hasFakeMEM = true;
-            System.out.println("Executed Second Clock Cycle Of Instruction: SRL");
+            System.out.println("Executed Second Clock Cycle Of SRL R" + r1 + " R" + r2 + " " +shamt);
         }
 
         hasEXR=false;
@@ -519,22 +516,28 @@ public class Architecture {
 
         if(!executeSecondClk){
             executeSecondClk = true;
-            String binOpCode = Integer.toBinaryString(opcode);
-            if(opcode >=0){
-                if (binOpCode.length() <= 4 ) {
-                    String temp = "";
-                    int zeroes = 4 - binOpCode.length();
-                    for (int i = 0; i < zeroes; i++) {
-                        temp += '0';
-                    }
-                    temp += binOpCode;
-                    binOpCode = temp;
-                }
+            if(opcode == 2){
+                System.out.println("Executing First Clock Cycle Of MULI R" + r1 + " R" + r2 + " " +immediate);
             }
-            else if(opcode<0){
-                binOpCode = binOpCode.substring(28);
+            if(opcode == 3){
+                System.out.println("Executing First Clock Cycle Of ADDI R" + r1 + " R" + r2 + " " +immediate);
             }
-            System.out.println("Executing First Clock Cycle Of Instruction: "+binOpCode);
+            if(opcode == 4){
+                System.out.println("Executing First Clock Cycle Of BNE R" + r1 + " R" + r2 + " " +immediate);
+            }
+            if(opcode == 5){
+                System.out.println("Executing First Clock Cycle Of ANDI R" + r1 + " R" + r2 + " " +immediate);
+            }
+            if(opcode == 6){
+                System.out.println("Executing First Clock Cycle Of ORI R" + r1 + " R" + r2 + " " +immediate);
+            }
+            if(opcode == -6){
+                System.out.println("Executing First Clock Cycle Of LW R" + r1 + " R" + r2 + " " +immediate);
+            }
+            if(opcode == -5){
+                System.out.println("Executing First Clock Cycle Of SW R" + r1 + " R" + r2 + " " +immediate);
+            }
+
             return;
         }
 
@@ -546,14 +549,14 @@ public class Architecture {
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value * immediate;
             hasFakeMEM = true;
-            System.out.println("Executed Second Clock Cycle Of Instruction: MULI");
+            System.out.println("Executed Second Clock Cycle Of MULI R" + r1 + " R" + r2 + " " +immediate);
         }
 
         if (opcode == 3){  //ADDI
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value + immediate;
             hasFakeMEM = true;
-            System.out.println("Executed Second Clock Cycle Of Instruction: ADDI");
+            System.out.println("Executed Second Clock Cycle Of ADDI R" + r1 + " R" + r2 + " " +immediate);
         }
 
         if (opcode == 4){  //BNE
@@ -562,7 +565,7 @@ public class Architecture {
                 fakeMemValue = curPCToExec + 1 + immediate;
                 hasFakeMEM = true;
                 jumped = true;
-                System.out.println("Executed Second Clock Cycle Of Instruction: BNE");
+                System.out.println("Executed Second Clock Cycle Of BNE R" + r1 + " R" + r2 + " " +immediate);
             }
         }
 
@@ -570,28 +573,28 @@ public class Architecture {
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value & immediate;
             hasFakeMEM = true;
-            System.out.println("Executed Second Clock Cycle Of Instruction: ANDI");
+            System.out.println("Executed Second Clock Cycle Of ANDI R" + r1 + " R" + r2 + " " +immediate);
         }
 
         if (opcode == 6){  //ORI
             fakeMemReg = r1Pos;
             fakeMemValue = r2Value | immediate;
             hasFakeMEM = true;
-            System.out.println("Executed Second Clock Cycle Of Instruction: ORI");
+            System.out.println("Executed Second Clock Cycle Of ORI R" + r1 + " R" + r2 + " " +immediate);
         }
 
         if (opcode == -6){  //LW
             completeRunReg = r1Pos;
             realWord = r2Value + immediate;
             hasMEMR = true;
-            System.out.println("Executed Second Clock Cycle Of Instruction: LW");
+            System.out.println("Executed Second Clock Cycle Of LW R" + r1 + " R" + r2 + " " +immediate);
         }
 
         if (opcode == -5){  //SW
             realWord = r2Value + immediate;
             realValue = r1Value;
             hasMEMW = true;
-            System.out.println("Executed Second Clock Cycle Of Instruction: SW");
+            System.out.println("Executed Second Clock Cycle Of SW R" + r1 + " R" + r2 + " " +immediate);
         }
 
 
@@ -605,7 +608,7 @@ public class Architecture {
 
         if(!executeSecondClk){
             executeSecondClk = true;
-            System.out.println("Executing First Clock Cycle Of Instruction: 0111");
+            System.out.println("Executing First Clock Cycle Of J " + address);
             return;
         }
 
@@ -619,7 +622,7 @@ public class Architecture {
         hasFakeMEM = true;
         jumped = true;
 
-        System.out.println("Executed Second Clock Cycle Of Instruction: J");
+        System.out.println("Executed Second Clock Cycle Of J " + address);
 
         hasEXR=false;
         hasEXI=false;
@@ -755,17 +758,15 @@ public class Architecture {
 
         System.out.println("~Memory Data~");
         for(int i=1024; i< mainMem.length; i++){
-            if(mainMem[i]!=0)
                 System.out.println("Mem["+i+"]: "+mainMem[i]);
         }
-        System.out.println("Rest of memory data addresses hold the value zero.");
     }
 
     public static void main(String[]args) {
         Architecture arch = new Architecture();
 
         try {
-            arch.run("test.txt");
+            arch.run("Program.txt");
         } catch (IOException e) {
             System.out.println("Couldn't read file");
         }
