@@ -293,7 +293,7 @@ public class Architecture {
                 return;
             }
             else {
-                System.out.println("Write In Memory["+word + 1024 +"] the value "+value);
+                System.out.println("Write In Memory["+(word + 1024) +"] the value "+value);
                 mainMem[word + 1024] = value;
             }
         }
